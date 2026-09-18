@@ -271,7 +271,10 @@ graph LR
 ```
 
 **Forward pass** ($x=2, y=4, z=0$) :
-$$ q = \frac{2}{4} = 0.5 \qquad f = 0.5 + 0 = 0.5 $$
+
+```math
+q = \frac{2}{4} = 0.5 \qquad f = 0.5 + 0 = 0.5
+```
 
 **Backward pass :**
 
