@@ -191,8 +191,6 @@ Attention, aucun GPU détecté !
 1. **Version CPU de PyTorch.** Le paquet installé peut être une build sans support CUDA (par exemple si le solveur a choisi la variante CPU). On le vérifie avec `python -c "import torch; print(torch.version.cuda)"` : `None` signifie que PyTorch n'a pas été compilé avec CUDA.
 2. **Aucun GPU alloué au job.** Si la session interactive a été lancée sans `--gres=gpu:1` (ou sur un nœud sans GPU), SLURM ne rend aucun GPU visible au processus, même si la machine en possède. On le vérifie en lançant `nvidia-smi` ou `echo $CUDA_VISIBLE_DEVICES` dans le job.
 
-Une troisième cause possible est une incompatibilité entre la version CUDA de la build PyTorch et le driver du nœud, mais elle est peu probable ici car le driver 595.84 supporte CUDA 13.2.
-
 ---
 
 ## 9. Fichier `environment.yml`
@@ -365,11 +363,12 @@ On mélange lors de l'entrainement pour que les batchs soient représentatifs du
 ### Étape 2 : Implémentation du réseau
 
 **Dans la méthode forward, pourquoi utilise-t-on torch.flatten(x, 1) avant de passer les données à la couche linéaire ?**
+
 Les images arrivent en (N, 3, 32, 32), alors que nn.Linear attend (N, 3072). flatten(x, 1) aplatit tout sauf la dimension 0, donc chaque image devient un vecteur et le batch est conservé.
 
 **Pourquoi est-il crucial de ne pas ajouter de fonction d'activation Softmax à la fin de notre réseau quand on s'apprête à utiliser nn.CrossEntropyLoss dans PyTorch ?**
 
-On ne le fait car nn.CrossEntropyLoss applique déjà un Softmax.
+On ne le fait pas car nn.CrossEntropyLoss applique déjà un Softmax.
 
 ### Étape 3 : Entraînement du modèle
 
@@ -377,7 +376,7 @@ On ne le fait car nn.CrossEntropyLoss applique déjà un Softmax.
 
 **Quelle est la différence fondamentale entre optimizer.zero_grad() et loss.backward() ?**
 
-loss.backward() calcule les gradients de la perte par rapport à chaque paramètre lors de la backpropagation. optimizer.zero_grad() remet les gradients à zéro (utile lorsqu'on change de batch car PyTorch garde en mémoire les gradient précédent)
+loss.backward() calcule les gradients de la perte par rapport à chaque paramètre lors de la backpropagation. optimizer.zero_grad() remet les gradients à zéro (utile lorsqu’on change de batch, car PyTorch garde en mémoire les gradients précédents.)
 
 ### Étape 4 : Évaluation sur l’ensemble de test
 
@@ -389,7 +388,32 @@ On utilise ce bloc afin de désactiver le calcul des gradients, ce qui réduit l
 
 **Si votre classificateur prédisait les classes de manière purement aléatoire, à quelle précision (accuracy) environ devriez-vous vous attendre sur le jeu de test CIFAR-10 ?**
 
-On devrait attendre une précision de 10% sur ce jeu car c'est un datatest équilibré à 10 classes
+On devrait attendre une précision de 10% sur ce jeu car c'est un datatest équilibré à 10 classes. En pratique notre modèle entrainé est à 38% d'accuracy ce qui prouve qu'il a appris quelque chose.
+
+## 11. Exercice 5 — Préparation : Split et hyperparamètres
+
+### Étape 1 : Préparation des données
+
+**Pourquoi est-il important d'inclure la date, l'heure et les hyperparamètres dans le nom du dossier de logs (run_name) ?**
+
+Pour le versioning. Chaque exécution aura son propre dossier, sans écraser les précédente, ce qui permet, par exemple, de comparer les courbes.
+
+![Premier réseau de neurones](../images/14_train_tb.png)
+
+### Étape 4 — Visualiser TensorBoard
+![LossTrain](../images/15_lossTrain.png)
 
 
+### Étape 5 — Mini-sweep d’hyperparamètres & diagnostic d’overfit
 
+**Analysez les courbes Loss/train et Loss/val superposées pour ces 3 runs. Lequel donne la meilleure accuracy en validation ?**
+
+Le run lr = 1e-1 (bs = 128) diverge (loss NaN) parce que son pas d'apprentissage est trop grand : son accuracy reste à 9,6 %, le niveau du hasard. Le run lr = 1e-2 stagne autour d'une loss de 2,0, sa loss de validation remonte en fin d'entraînement, et il plafonne à 38,1 %. Le run lr = 1e-3 est le seul à converger (loss de validation de 1,60 à 1,45) et donne la meilleure accuracy en validation : 51,2 %.
+
+**Comment détecte-t-on visuellement un sur-apprentissage (overfitting) sur les courbes de perte (loss) d'entraînement et de validation ? Décrivez l'allure des courbes.**
+
+La loss d'entraînement continue de baisser alors que celle de validation stagne puis remonte : les deux courbes s'écartent. Le modèle mémorise les données d'entraînement au lieu de généraliser. On en voit un début sur le run lr=1e-3, où l'écart entre les deux courbes se creuse au fil des epochs.
+
+![LossTrain](../images/lossTrain.png)
+![LossTrain](../images/lossVal.png)
+![LossTrain](../images/accVal.png)
