@@ -6,7 +6,7 @@
 
 Connexion en SSH au nœud de connexion `arcadia-slurm-controller` du cluster HPC Albator (Direction de l'Enseignement, Télécom SudParis).
 
-![Connexion au cluster Albator](images/01_connexion_albator.png)
+![Connexion au cluster Albator](../images/01_connexion_albator.png)
 
 ---
 
@@ -24,7 +24,7 @@ srun --partition=gpu --gres=gpu:1 --time=01:00:00 --cpus-per-task=1 --mem=8G --p
 
 SLURM m'a attribué le job **1540** sur le nœud `starfighter-slurm-node-03-1`.
 
-![nvidia-smi sur le contrôleur puis srun](images/02_nvidia_smi_controller_srun.png)
+![nvidia-smi sur le contrôleur puis srun](../images/02_nvidia_smi_controller_srun.png)
 
 ### 2.2 `nvidia-smi` sur le nœud de calcul
 
@@ -32,7 +32,7 @@ SLURM m'a attribué le job **1540** sur le nœud `starfighter-slurm-node-03-1`.
 
 Le GPU alloué est une **NVIDIA L4**, avec **23 034 MiB** de mémoire (environ 24 Go). Le driver est en version 595.84 et supporte CUDA jusqu'à la version 13.2. Au moment de la capture, le GPU était au repos (état P8, 0 % d'utilisation, aucun processus).
 
-![nvidia-smi sur le nœud de calcul](images/03_nvidia_smi_noeud.png)
+![nvidia-smi sur le nœud de calcul](../images/03_nvidia_smi_noeud.png)
 
 ---
 
@@ -44,7 +44,7 @@ Depuis un second terminal connecté au contrôleur, j'ai listé mes jobs :
 squeue -u $USER
 ```
 
-![squeue](images/04_squeue.png)
+![squeue](../images/04_squeue.png)
 
 Le job interactif a le JobID **1540**, il est dans l'état `R` (*running*) sur `starfighter-slurm-node-03-1`.
 
@@ -54,7 +54,7 @@ Le job interactif a le JobID **1540**, il est dans l'état `R` (*running*) sur `
 scancel 1540
 ```
 
-![scancel](images/05_scancel.png)
+![scancel](../images/05_scancel.png)
 
 Juste après l'annulation, le job passe dans l'état `CG` (*completing*) le temps que SLURM libère les ressources, puis il disparaît de la file d'attente.
 
@@ -66,7 +66,7 @@ Juste après l'annulation, le job passe dans l'état `CG` (*completing*) le temp
 sinfo -s
 ```
 
-![sinfo](images/06_sinfo.png)
+![sinfo](../images/06_sinfo.png)
 
 Quatre partitions sont visibles : `admin`, `arcadia`, `darkshadow` et `gpu`. La partition `gpu`, utilisée dans ce TP, regroupe 18 nœuds (3 alloués et 15 libres au moment de la commande) avec une durée maximale de **12 h** par job. La colonne `NODES(A/I/O/T)` se lit : alloués / inactifs (*idle*) / autres / total.
 
@@ -101,13 +101,13 @@ Soumission :
 sbatch hello.sh
 ```
 
-![sbatch](images/07_sbatch_hello.png)
+![sbatch](../images/07_sbatch_hello.png)
 
 > **Quel est le nom exact du fichier de log généré ?**
 
 Le fichier de sortie est **`logs/hello-slurm-1541.out`**. Son nom suit le motif `%x-%j.out`, où `%x` est le nom du job (`hello-slurm`, défini par `-J`) et `%j` son identifiant (`1541`). Les erreurs sont redirigées de la même façon vers `logs/hello-slurm-1541.err`.
 
-![Contenu du log](images/08_log_hello.png)
+![Contenu du log](../images/08_log_hello.png)
 
 Le log confirme que le job s'est exécuté sur `starfighter-slurm-node-03-1`, qu'il a bien eu accès au GPU L4, et qu'il affiche le message final « Bonjour depuis SLURM ! ».
 
@@ -121,7 +121,7 @@ Le log confirme que le job s'est exécuté sur `starfighter-slurm-node-03-1`, qu
 sacct -j 1541 --format=JobID,State,Elapsed,MaxRSS,ReqMem,ReqCPUS
 ```
 
-![sacct](images/09_sacct.png)
+![sacct](../images/09_sacct.png)
 
 > **Différence entre `ReqMem` et `MaxRSS` :**
 
@@ -150,7 +150,7 @@ echo $CONDA_DEFAULT_ENV
 # deeplearning
 ```
 
-![Environnement deeplearning](images/10_env_deeplearning.png)
+![Environnement deeplearning](../images/10_env_deeplearning.png)
 
 Le chemin du binaire pointe bien dans `envs/deeplearning`, ce qui confirme que c'est le Python de l'environnement qui est utilisé et non celui du système.
 
@@ -182,7 +182,7 @@ CUDA available: False
 Attention, aucun GPU détecté !
 ```
 
-![check_gpu.py](images/11_check_gpu.png)
+![check_gpu.py](../images/11_check_gpu.png)
 
 > **Deux raisons possibles au `CUDA available: False` :**
 
@@ -214,9 +214,13 @@ dependencies:
   - torchvision
 ```
 
-## 1. Architecture et paramètres
+---
 
-![Schéma du MLP](mlp_schema.jpg)
+## 10. Exercice 3 — Exercices théoriques
+
+### 10.1 Architecture et paramètres
+
+![Schéma du MLP](../images/mlp_schema.jpg)
 
 ```mermaid
 graph LR
@@ -239,10 +243,15 @@ graph LR
 - Couche 2 : 4 × 2 + 2 = 10
 - **Total = 16 + 10 = 26 paramètres**
 
-## 2. Équations et dimensions
+### 10.2 Équations et dimensions
 
-$$ H = \text{ReLU}(X W_1^T + b_1) $$
-$$ Y = H W_2^T + b_2 $$
+```math
+H = \text{ReLU}(X W_1^T + b_1)
+```
+
+```math
+Y = H W_2^T + b_2
+```
 
 ```
 X  : (N, 3)
@@ -256,7 +265,7 @@ Y  : (N, 2)
 
 Vérification : $(N,3)\cdot(3,4) = (N,4)$, puis $(N,4)\cdot(4,2) = (N,2)$.
 
-## 3. Graphe de calcul et rétropropagation
+### 10.3 Graphe de calcul et rétropropagation
 
 $f(x,y,z) = \frac{x}{y} + z$, avec le nœud intermédiaire $q = \frac{x}{y}$, donc $f = q + z$.
 
@@ -278,44 +287,66 @@ q = \frac{2}{4} = 0.5 \qquad f = 0.5 + 0 = 0.5
 
 Gradients locaux du nœud d'addition :
 
-$$ \frac{\partial f}{\partial q} = 1, \qquad \frac{\partial f}{\partial z} = 1 $$
+```math
+\frac{\partial f}{\partial q} = 1, \qquad \frac{\partial f}{\partial z} = 1
+```
 
 Gradients locaux du nœud de division :
 
-$$ \frac{\partial q}{\partial x} = \frac{1}{y} = \frac{1}{4} = 0.25, \qquad \frac{\partial q}{\partial y} = -\frac{x}{y^2} = -\frac{2}{16} = -0.125 $$
+```math
+\frac{\partial q}{\partial x} = \frac{1}{y} = \frac{1}{4} = 0.25, \qquad \frac{\partial q}{\partial y} = -\frac{x}{y^2} = -\frac{2}{16} = -0.125
+```
 
 Règle de la chaîne :
 
-$$ \frac{\partial f}{\partial x} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial x} = 1 \times 0.25 = \mathbf{0.25} $$
+```math
+\frac{\partial f}{\partial x} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial x} = 1 \times 0.25 = \mathbf{0.25}
+```
 
-$$ \frac{\partial f}{\partial y} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial y} = 1 \times (-0.125) = \mathbf{-0.125} $$
+```math
+\frac{\partial f}{\partial y} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial y} = 1 \times (-0.125) = \mathbf{-0.125}
+```
 
-$$ \frac{\partial f}{\partial z} = \mathbf{1} $$
+```math
+\frac{\partial f}{\partial z} = \mathbf{1}
+```
 
-## 4. Mise à jour (descente de gradient, η = 1)
+### 10.4 Mise à jour (descente de gradient, η = 1)
 
-$$ x' = x - \eta \frac{\partial f}{\partial x} = 2 - 0.25 = 1.75 $$
-$$ y' = y - \eta \frac{\partial f}{\partial y} = 4 + 0.125 = 4.125 $$
-$$ z' = z - \eta \frac{\partial f}{\partial z} = 0 - 1 = -1 $$
+```math
+x' = x - \eta \frac{\partial f}{\partial x} = 2 - 0.25 = 1.75
+```
 
-$$ f' = \frac{1.75}{4.125} + (-1) = \frac{14}{33} - 1 = -\frac{19}{33} \approx -0.576 $$
+```math
+y' = y - \eta \frac{\partial f}{\partial y} = 4 + 0.125 = 4.125
+```
 
-La fonction passe de $0.5$ à $\approx -0.576$ : elle a bien diminué. C'est attendu, puisqu'on s'est déplacé dans la direction opposée au gradient, qui est la direction de plus forte descente.
+```math
+z' = z - \eta \frac{\partial f}{\partial z} = 0 - 1 = -1
+```
 
-## 5. Questions de réflexion
+```math
+f' = \frac{1.75}{4.125} + (-1) = \frac{14}{33} - 1 = -\frac{19}{33} \approx -0.576
+```
 
-**Pourquoi la règle de la chaîne ?**
+La fonction passe de $0.5$ à $\approx -0.576$ : elle a bien diminué.
+
+### 10.5 Questions de réflexion
+
+**Pourquoi utilisons-nous la règle de la chaîne (chain rule) pour calculer les gradients dans les réseaux de neurones profonds ?**
+
 Un réseau profond est une composition de fonctions simples (couches linéaires, activations). La règle de la chaîne permet d'obtenir le gradient de la perte par rapport à chaque paramètre en multipliant des dérivées locales faciles à calculer. En réutilisant les résultats intermédiaires de la sortie vers l'entrée (rétropropagation), on calcule tous les gradients en une seule passe arrière, pour un coût comparable à celui du forward.
 
-**Pourquoi des mini-batchs ?**
-Un seul exemple donne un gradient très bruité et exploite mal le parallélisme du GPU. Le dataset complet est coûteux en mémoire et en temps pour une seule mise à jour. Le mini-batch est un compromis : le gradient est assez stable, le calcul est vectorisé et efficace, et le léger bruit restant aide à sortir de minima locaux ou de points selles, ce qui améliore souvent la généralisation.
+**Quelles sont les principales raisons d'utiliser des mini-batchs plutôt que d'optimiser sur un seul exemple à la fois ou sur l'ensemble total des données ?**
 
-## 6. Association
+Optimiser avec l'ensemble des données est coûteux en ressources pour une seule mise à jour et utiliser un seul exemple ne sera pas représentatif du dataset (aléatoire on peut descendre dans la bonne direction comme l'opposé). Le mini-batch est un compromis qui permet de paralléliser les calculs, et le léger bruit restant aide à sortir de minima locaux.
+
+### 10.6 Association
 
 ```
 Tâche                   | Fonction finale (Sortie) | Fonction de perte (Loss)
 ------------------------|--------------------------|-----------------------------------------
 Classification binaire  | 1. Sigmoïde              | A. Binary Cross-Entropy (BCE)
-Classification multi    | 2. Softmax               | B. Cross-Entropy catégorielle
+Classification multi    | 2. Softmax               | B. Cross-Entropy
 Régression pure         | 3. Identité (aucune)     | C. MSE (Mean Squared Error)
 ```
