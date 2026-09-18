@@ -1,7 +1,5 @@
 # TP1 — Prise en main du cluster Albator (SLURM) et de l'environnement Deep Learning
 
-**Auteur :** Ilyes BELKHIR
-
 ---
 
 ## 1. Connexion au cluster
@@ -263,11 +261,11 @@ Vérification : $(N,3)\cdot(3,4) = (N,4)$, puis $(N,4)\cdot(4,2) = (N,2)$.
 $f(x,y,z) = \frac{x}{y} + z$, avec le nœud intermédiaire $q = \frac{x}{y}$, donc $f = q + z$.
 
 ```mermaid
-graph LR
-  x((x)) --> div["q = x / y"]
-  y((y)) --> div
-  div --> add["f = q + z"]
-  z((z)) --> add
+flowchart LR
+  X(("x")) --> Q["q = x / y"]
+  Y(("y")) --> Q
+  Q --> F["f = q + z"]
+  Z(("z")) --> F
 ```
 
 **Forward pass** ($x=2, y=4, z=0$) :
