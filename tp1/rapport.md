@@ -356,8 +356,6 @@ Régression pure         | 3. Identité (aucune)     | C. MSE (Mean Squared Erro
 
 ### Étape 1 : Préparation des données
 
-![Premier réseau de neurones](../images/12_trainpy.png)
-
 **Expliquez brièvement à quoi servent les arguments batch_size et shuffle dans le DataLoader. Pourquoi shuffle doit-il avoir une valeur différente pour l'entraînement et pour le test ?**
 
 batch_size fixe le nombre d'images à traité pour chaque mise à jour des poids (gradient calculé sur 32 images). shuffle permet de mélanger l'ordre des exemples à chaque epoch.
@@ -372,3 +370,26 @@ Les images arrivent en (N, 3, 32, 32), alors que nn.Linear attend (N, 3072). fla
 **Pourquoi est-il crucial de ne pas ajouter de fonction d'activation Softmax à la fin de notre réseau quand on s'apprête à utiliser nn.CrossEntropyLoss dans PyTorch ?**
 
 On ne le fait car nn.CrossEntropyLoss applique déjà un Softmax.
+
+### Étape 3 : Entraînement du modèle
+
+![Premier réseau de neurones](../images/12_trainpy.png)
+
+**Quelle est la différence fondamentale entre optimizer.zero_grad() et loss.backward() ?**
+
+loss.backward() calcule les gradients de la perte par rapport à chaque paramètre lors de la backpropagation. optimizer.zero_grad() remet les gradients à zéro (utile lorsqu'on change de batch car PyTorch garde en mémoire les gradient précédent)
+
+### Étape 4 : Évaluation sur l’ensemble de test
+
+![Premier réseau de neurones](../images/13_evaluation.png)
+
+**Pourquoi utilise-t-on le bloc with torch.no_grad(): lors de l'évaluation ? Quel est l'avantage en termes de ressources matérielles ?**
+
+On utilise ce bloc afin de désactiver le calcul des gradients, ce qui réduit la consommation de mémoire et de calcul. On le fait uniquement lors de l’évaluation, car les poids sont fixés, rendant leur mise à jour inutile.
+
+**Si votre classificateur prédisait les classes de manière purement aléatoire, à quelle précision (accuracy) environ devriez-vous vous attendre sur le jeu de test CIFAR-10 ?**
+
+On devrait attendre une précision de 10% sur ce jeu car c'est un datatest équilibré à 10 classes
+
+
+

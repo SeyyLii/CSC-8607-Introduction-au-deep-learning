@@ -98,3 +98,32 @@ for epoch in range(EPOCHS):
     epoch_loss = running_loss / running_total
     epoch_acc  = running_correct / running_total
     print(f"Epoch {epoch+1:02d} | loss={epoch_loss:.4f} | acc={epoch_acc:.4f}")
+
+model.eval() # Mode évaluation
+classes = trainset.classes
+
+total = 0
+correct = 0
+
+with torch.no_grad():
+    for images, labels in testloader:
+        images = images.to(device, non_blocking=True)
+        labels = labels.to(device, non_blocking=True)
+        
+        outputs = model(images)
+        _, predicted = torch.max(outputs, 1)
+        
+        total   += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+acc = correct / total
+print(f"Test accuracy: {acc:.3f}")
+
+    # Sauvegarde des poids
+torch.save(model.state_dict(), "mlp_model.pth")
+
+# Exemple de chargement (sur CPU) - Vous pouvez tester cela dans un script séparé
+# model2 = MLP().to("cpu")
+# state = torch.load("mlp_model.pth", map_location="cpu", weights_only=True)
+# model2.load_state_dict(state)
+# model2.eval() 
