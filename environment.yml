@@ -1,0 +1,12 @@
+name: deeplearning
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - pip
+  - python=3.10
+  - pytorch
+  - pytorch-cuda=12.1
+  - tensorboard
+  - torchaudio
+  - torchvision
