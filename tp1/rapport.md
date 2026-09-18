@@ -215,3 +215,101 @@ dependencies:
   - torchaudio
   - torchvision
 ```
+
+## 1. Architecture et paramètres
+
+![Schéma du MLP](mlp_schema.jpg)
+
+```mermaid
+graph LR
+  x1((x1)) --> h1((h1)) & h2((h2)) & h3((h3)) & h4((h4))
+  x2((x2)) --> h1 & h2 & h3 & h4
+  x3((x3)) --> h1 & h2 & h3 & h4
+  h1 --> y1((y1)) & y2((y2))
+  h2 --> y1 & y2
+  h3 --> y1 & y2
+  h4 --> y1 & y2
+```
+
+**Sans les biais :**
+- Couche 1 (entrée → cachée) : 3 × 4 = 12 poids
+- Couche 2 (cachée → sortie) : 4 × 2 = 8 poids
+- **Total = 12 + 8 = 20 paramètres**
+
+**Avec les biais :**
+- Couche 1 : 3 × 4 + 4 = 16
+- Couche 2 : 4 × 2 + 2 = 10
+- **Total = 16 + 10 = 26 paramètres**
+
+## 2. Équations et dimensions
+
+$$ H = \text{ReLU}(X W_1^T + b_1) $$
+$$ Y = H W_2^T + b_2 $$
+
+```
+X  : (N, 3)
+W1 : (4, 3)
+b1 : (1, 4) -> diffusé en (N, 4)
+H  : (N, 4)
+W2 : (2, 4)
+b2 : (1, 2) -> diffusé en (N, 2)
+Y  : (N, 2)
+```
+
+Vérification : $(N,3)\cdot(3,4) = (N,4)$, puis $(N,4)\cdot(4,2) = (N,2)$.
+
+## 3. Graphe de calcul et rétropropagation
+
+$f(x,y,z) = \frac{x}{y} + z$, avec le nœud intermédiaire $q = \frac{x}{y}$, donc $f = q + z$.
+
+```mermaid
+graph LR
+  x((x)) --> div["q = x / y"]
+  y((y)) --> div
+  div --> add["f = q + z"]
+  z((z)) --> add
+```
+
+**Forward pass** ($x=2, y=4, z=0$) :
+$$ q = \frac{2}{4} = 0.5 \qquad f = 0.5 + 0 = 0.5 $$
+
+**Backward pass :**
+
+Gradients locaux du nœud d'addition :
+$$ \frac{\partial f}{\partial q} = 1, \qquad \frac{\partial f}{\partial z} = 1 $$
+
+Gradients locaux du nœud de division :
+$$ \frac{\partial q}{\partial x} = \frac{1}{y} = \frac{1}{4} = 0.25, \qquad \frac{\partial q}{\partial y} = -\frac{x}{y^2} = -\frac{2}{16} = -0.125 $$
+
+Règle de la chaîne :
+$$ \frac{\partial f}{\partial x} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial x} = 1 \times 0.25 = \mathbf{0.25} $$
+$$ \frac{\partial f}{\partial y} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial y} = 1 \times (-0.125) = \mathbf{-0.125} $$
+$$ \frac{\partial f}{\partial z} = \mathbf{1} $$
+
+## 4. Mise à jour (descente de gradient, η = 1)
+
+$$ x' = x - \eta \frac{\partial f}{\partial x} = 2 - 0.25 = 1.75 $$
+$$ y' = y - \eta \frac{\partial f}{\partial y} = 4 + 0.125 = 4.125 $$
+$$ z' = z - \eta \frac{\partial f}{\partial z} = 0 - 1 = -1 $$
+
+$$ f' = \frac{1.75}{4.125} + (-1) = \frac{14}{33} - 1 = -\frac{19}{33} \approx -0.576 $$
+
+La fonction passe de $0.5$ à $\approx -0.576$ : elle a bien diminué. C'est attendu, puisqu'on s'est déplacé dans la direction opposée au gradient, qui est la direction de plus forte descente.
+
+## 5. Questions de réflexion
+
+**Pourquoi la règle de la chaîne ?**
+Un réseau profond est une composition de fonctions simples (couches linéaires, activations). La règle de la chaîne permet d'obtenir le gradient de la perte par rapport à chaque paramètre en multipliant des dérivées locales faciles à calculer. En réutilisant les résultats intermédiaires de la sortie vers l'entrée (rétropropagation), on calcule tous les gradients en une seule passe arrière, pour un coût comparable à celui du forward.
+
+**Pourquoi des mini-batchs ?**
+Un seul exemple donne un gradient très bruité et exploite mal le parallélisme du GPU. Le dataset complet est coûteux en mémoire et en temps pour une seule mise à jour. Le mini-batch est un compromis : le gradient est assez stable, le calcul est vectorisé et efficace, et le léger bruit restant aide à sortir de minima locaux ou de points selles, ce qui améliore souvent la généralisation.
+
+## 6. Association
+
+```
+Tâche                   | Fonction finale (Sortie) | Fonction de perte (Loss)
+------------------------|--------------------------|-----------------------------------------
+Classification binaire  | 1. Sigmoïde              | A. Binary Cross-Entropy (BCE)
+Classification multi    | 2. Softmax               | B. Cross-Entropy catégorielle
+Régression pure         | 3. Identité (aucune)     | C. MSE (Mean Squared Error)
+```
