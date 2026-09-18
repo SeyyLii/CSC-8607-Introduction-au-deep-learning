@@ -279,14 +279,19 @@ q = \frac{2}{4} = 0.5 \qquad f = 0.5 + 0 = 0.5
 **Backward pass :**
 
 Gradients locaux du nœud d'addition :
+
 $$ \frac{\partial f}{\partial q} = 1, \qquad \frac{\partial f}{\partial z} = 1 $$
 
 Gradients locaux du nœud de division :
+
 $$ \frac{\partial q}{\partial x} = \frac{1}{y} = \frac{1}{4} = 0.25, \qquad \frac{\partial q}{\partial y} = -\frac{x}{y^2} = -\frac{2}{16} = -0.125 $$
 
 Règle de la chaîne :
+
 $$ \frac{\partial f}{\partial x} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial x} = 1 \times 0.25 = \mathbf{0.25} $$
+
 $$ \frac{\partial f}{\partial y} = \frac{\partial f}{\partial q}\cdot\frac{\partial q}{\partial y} = 1 \times (-0.125) = \mathbf{-0.125} $$
+
 $$ \frac{\partial f}{\partial z} = \mathbf{1} $$
 
 ## 4. Mise à jour (descente de gradient, η = 1)
