@@ -350,3 +350,25 @@ Classification binaire  | 1. Sigmoïde              | A. Binary Cross-Entropy (B
 Classification multi    | 2. Softmax               | B. Cross-Entropy
 Régression pure         | 3. Identité (aucune)     | C. MSE (Mean Squared Error)
 ```
+---
+
+## 11. Exercice 4 — Votre premier réseau de neurones
+
+### Étape 1 : Préparation des données
+
+![Premier réseau de neurones](../images/12_trainpy.png)
+
+**Expliquez brièvement à quoi servent les arguments batch_size et shuffle dans le DataLoader. Pourquoi shuffle doit-il avoir une valeur différente pour l'entraînement et pour le test ?**
+
+batch_size fixe le nombre d'images à traité pour chaque mise à jour des poids (gradient calculé sur 32 images). shuffle permet de mélanger l'ordre des exemples à chaque epoch.
+
+On mélange lors de l'entrainement pour que les batchs soient représentatifs du dataset, sans ça le modèle verrait toujours les exemples dans le même ordre et pourrait apprendre des biais liés à cet ordre. Au test, on ne mélange pas car les poids ne sont plus mis à jour, donc l'ordre n'a aucune influence sur la précision.
+
+### Étape 2 : Implémentation du réseau
+
+**Dans la méthode forward, pourquoi utilise-t-on torch.flatten(x, 1) avant de passer les données à la couche linéaire ?**
+Les images arrivent en (N, 3, 32, 32), alors que nn.Linear attend (N, 3072). flatten(x, 1) aplatit tout sauf la dimension 0, donc chaque image devient un vecteur et le batch est conservé.
+
+**Pourquoi est-il crucial de ne pas ajouter de fonction d'activation Softmax à la fin de notre réseau quand on s'apprête à utiliser nn.CrossEntropyLoss dans PyTorch ?**
+
+On ne le fait car nn.CrossEntropyLoss applique déjà un Softmax.
