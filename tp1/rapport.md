@@ -214,7 +214,7 @@ dependencies:
 
 ### 1. Architecture et paramètres
 
-![Schéma du MLP](../images/mlp_schema.jpeg)
+![Schéma du MLP](../images/mlp.heic)
 
 ```mermaid
 graph LR
