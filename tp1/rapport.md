@@ -6,7 +6,7 @@
 
 Connexion en SSH au nœud de connexion `arcadia-slurm-controller` du cluster HPC Albator (Direction de l'Enseignement, Télécom SudParis).
 
-![Connexion au cluster Albator](images/01_connexion_albator.png)
+![Connexion au cluster Albator](../images/01_connexion_albator.png)
 
 ---
 
@@ -24,7 +24,7 @@ srun --partition=gpu --gres=gpu:1 --time=01:00:00 --cpus-per-task=1 --mem=8G --p
 
 SLURM m'a attribué le job **1540** sur le nœud `starfighter-slurm-node-03-1`.
 
-![nvidia-smi sur le contrôleur puis srun](images/02_nvidia_smi_controller_srun.png)
+![nvidia-smi sur le contrôleur puis srun](../images/02_nvidia_smi_controller_srun.png)
 
 ### 2.2 `nvidia-smi` sur le nœud de calcul
 
@@ -32,7 +32,7 @@ SLURM m'a attribué le job **1540** sur le nœud `starfighter-slurm-node-03-1`.
 
 Le GPU alloué est une **NVIDIA L4**, avec **23 034 MiB** de mémoire (environ 24 Go).
 
-![nvidia-smi sur le nœud de calcul](images/03_nvidia_smi_noeud.png)
+![nvidia-smi sur le nœud de calcul](../images/03_nvidia_smi_noeud.png)
 
 ---
 
@@ -44,7 +44,7 @@ Depuis un second terminal connecté au contrôleur, j'ai listé mes jobs :
 squeue -u $USER
 ```
 
-![squeue](images/04_squeue.png)
+![squeue](../images/04_squeue.png)
 
 Le job interactif a le JobID **1540**, il est dans l'état `R` (*running*) sur `starfighter-slurm-node-03-1`.
 
@@ -54,7 +54,7 @@ Le job interactif a le JobID **1540**, il est dans l'état `R` (*running*) sur `
 scancel 1540
 ```
 
-![scancel](images/05_scancel.png)
+![scancel](../images/05_scancel.png)
 
 Juste après l'annulation, le job passe dans l'état `CG` (*completing*) le temps que SLURM libère les ressources, puis il disparaît de la file d'attente.
 
@@ -66,7 +66,7 @@ Juste après l'annulation, le job passe dans l'état `CG` (*completing*) le temp
 sinfo -s
 ```
 
-![sinfo](images/06_sinfo.png)
+![sinfo](../images/06_sinfo.png)
 
 Quatre partitions sont visibles : `admin`, `arcadia`, `darkshadow` et `gpu`. La partition `gpu`, utilisée dans ce TP, regroupe 18 nœuds (3 alloués et 15 libres au moment de la commande) avec une durée maximale de **12 h** par job. La colonne `NODES(A/I/O/T)` se lit : alloués / inactifs (*idle*) / autres / total.
 
@@ -101,13 +101,13 @@ Soumission :
 sbatch hello.sh
 ```
 
-![sbatch](images/07_sbatch_hello.png)
+![sbatch](../images/07_sbatch_hello.png)
 
 > **Quel est le nom exact du fichier de log généré ?**
 
 Le fichier de sortie est **`logs/hello-slurm-1541.out`**. Les erreurs sont redirigées de la même façon vers `logs/hello-slurm-1541.err`.
 
-![Contenu du log](images/08_log_hello.png)
+![Contenu du log](../images/08_log_hello.png)
 
 Le log confirme que le job s'est exécuté sur `starfighter-slurm-node-03-1`, qu'il a bien eu accès au GPU L4, et qu'il affiche le message final « Bonjour depuis SLURM ! ».
 
@@ -119,7 +119,7 @@ Le log confirme que le job s'est exécuté sur `starfighter-slurm-node-03-1`, qu
 sacct -j 1541 --format=JobID,State,Elapsed,MaxRSS,ReqMem,ReqCPUS
 ```
 
-![sacct](images/09_sacct.png)
+![sacct](../images/09_sacct.png)
 
 > **Différence entre `ReqMem` et `MaxRSS` :**
 
@@ -150,7 +150,7 @@ echo $CONDA_DEFAULT_ENV
 # deeplearning
 ```
 
-![Environnement deeplearning](images/10_env_deeplearning.png)
+![Environnement deeplearning](../images/10_env_deeplearning.png)
 
 Le chemin du binaire pointe bien dans `envs/deeplearning`, ce qui confirme que c'est le Python de l'environnement qui est utilisé et non celui du système.
 
@@ -182,7 +182,7 @@ CUDA available: False
 Attention, aucun GPU détecté !
 ```
 
-![check_gpu.py](images/11_check_gpu.png)
+![check_gpu.py](../images/11_check_gpu.png)
 
 > **Deux raisons possibles au `CUDA available: False` :**
 
@@ -214,7 +214,7 @@ dependencies:
 
 ### 1. Architecture et paramètres
 
-![Schéma du MLP](mlp_schema.jpeg)
+![Schéma du MLP](../images/mlp_schema.jpeg)
 
 ```mermaid
 graph LR
