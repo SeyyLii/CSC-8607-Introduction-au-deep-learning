@@ -37,7 +37,7 @@ L2 réduit tous les poids proportionnellement à leur valeur, sans les annuler :
 
 ## Exercice 3 : Comparaison des Optimiseurs et TensorBoard
 
-![alt text](SGDvsMOMENTUM.png)
+![alt text](/images/SGDvsMOMENTUM.png)
 
 **Quel optimiseur converge le plus rapidement initialement ?**
 
