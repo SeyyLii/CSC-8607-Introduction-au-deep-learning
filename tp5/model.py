@@ -116,20 +116,20 @@ class ImageCaptioningModel(nn.Module):
         self.cnn = nn.Sequential(*list(cnn_model.children())[:-2])
         self.attention = AttentionModule(feature_dim=2048, hidden_dim=lstm_hidden_dim)
         self.embeddings = embedding_model
+ 
         vocab_size = embedding_model.weight.shape[0]
-
         # L'entrée du LSTM est la dimension de l'embedding word2vec (ex: 300)
         emb_dim = embedding_model.weight.shape[1]
+ 
         self.lstm = LSTMWithAttention(emb_dim, lstm_hidden_dim, self.attention, 2048)
-        
-        # Couche de projection finale pour prédire le mot dans le vocabulaire
-        # Entrée: LSTM hidden_dim -> Sortie: vocab_size
+ 
+        # Couche de projection finale : hidden_dim -> vocab_size
         self.fc_out = nn.Linear(lstm_hidden_dim, vocab_size)
-
+ 
     def forward(self, images, captions):
         cnn_features = self.cnn(images)
         emb = self.embeddings(captions)
         lstm_outputs, (hidden_state, _) = self.lstm(emb, cnn_features)
-        
+ 
         output = self.fc_out(lstm_outputs)
         return output
