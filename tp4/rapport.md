@@ -1,5 +1,4 @@
-# TP3 — Réseaux convolutifs
-
+# TP4 — Réseaux récurrents et génération de séquences
 ---
 
 ## Exercice 1 : Exploration et Prétraitement des partitions ABC
@@ -7,6 +6,7 @@
 ## Étape 1 : Chargement et découverte
 
 **1. Exécutez ce code et indiquez dans votre rapport le nombre exact de partitions présentes dans train.json et dans validation.json.**
+
 ### Taille du jeu de données
 - `train.json` : **214 122** partitions
 - `validation.json` : **2 162** partitions (≈ 1 % du total)
@@ -33,14 +33,17 @@ Les quatre premières lignes sont des champs `clé:valeur` qui ne produisent auc
 ![Vocabulaire et longueur moyenne](../images/abc_train.png)
 
 **Combien y a-t-il de caractères uniques (vocab_size) ? Quelle est la longueur moyenne et la longueur maximale d'une partition dans le jeu d'entraînement ?**
+
 On compte 95 caractères uniques, une longueur moyenne de 290.1 et une longueur max de 2968 dans le jeu d'entrainement.
 
 **Pourquoi est-il indispensable d'appliquer sorted(...) sur le set des caractères uniques avant de créer char_to_index ? Que se passerait-il si vous sauvegardiez les poids de votre modèle aujourd'hui et que vous relanciez votre script demain pour générer de la musique sans ce sorted() ?**
+
 L'ordre d'un `set` de chaînes dépend du hash, randomisé à chaque lancement de Python.
 Sans `sorted()`, le mapping caractère → indice change d'une exécution à l'autre.
 Les poids sauvegardés correspondraient alors à d'autres caractères.
 
 **Pourquoi avons-nous choisi de tronquer à SEQ_LENGTH = 500 (environ deux fois la longueur moyenne) plutôt que d'aligner toutes les chansons sur la longueur maximale max_len du dataset ? Quel serait l'impact d'un padding jusqu'à max_len sur le temps de calcul, la mémoire GPU et l'apprentissage du modèle ?**
+
 Avec max_len, ~90 % de chaque séquence serait du padding (290 utiles sur 2 968) :
 - **Temps** : le RNN est séquentiel, le coût est linéaire en seq_len, donc ×6.
 - **Mémoire** : la BPTT stocke les activations de chaque pas de temps, donc ×6,
@@ -98,20 +101,24 @@ tous les caractères seraient alignés sur une même droite, et l'ordre arbitrai
 
 
 **1. Manipulation des tenseurs : Pourquoi doit-on écrire logits.reshape(-1, vocab_size) et y.reshape(-1) avant d'appeler loss_fn ? Que représente la valeur numérique de la dimension obtenue à la place du -1 ?**
+
 `nn.CrossEntropyLoss` attend des logits de forme (N, C) et des cibles de forme (N,). Nos logits sont en (batch, seq_len, vocab_size), donc on fusionne les dimensions batch et temps : chaque position devient une classification indépendante parmi 95 caractères.
 Le -1 vaut batch_size × seq_len = 128 × 499 = 63 872, c'est-à-dire le nombre total de caractères à prédire dans le batch (moins pour le dernier batch incomplet).
 
 
 **2. Ordre des opérations : Pourquoi la fonction clip_grad_norm_ doit-elle impérativement être appelée après loss.backward() mais avant optimizer.step() ?**
+
 Après `loss.backward()`, car c'est là que les gradients sont calculés : avant, il n'y a rien à clipper.
 Avant `optimizer.step()`, car c'est l'étape qui met à jour les poids avec les gradients : si on clippe après, la mise à jour a déjà été faite avec les gradients non limités, et le clipping ne sert à rien.
 
 **3. Analyse expérimentale (TensorBoard) : Insérez dans votre rapport les courbes comparatives TensorBoard (Loss/Validation, Accuracy/Validation et GradNorm/step) des 3 runs :**
+
 ![Loss/Validation](../images/loss_val.png)
 ![Accuracy/Validation](../images/acc_val.png)
 ![GradNorm/step](../images/gradnorm_step.png)
 
 **Comparez l'évolution de la norme des gradients et la stabilité de la perte entre le Run 1 et le Run 2. Quel problème théorique du RNN simple le gradient clipping corrige-t-il ici ?**
+
 Dans notre cas, les deux runs sont très proches : val loss finale de 0,7187 (Run 1) contre 0,7453 (Run 2), val accuracy de 0,7751 contre 0,7683. Sur GradNorm/step, la norme ne dépasse 1 que pendant les premiers steps de l'entraînement, puis elle se stabilise autour de 0,2–0,4 pour les deux runs, sans explosion. Le seuil de 1.0 n'est donc atteint qu'au tout début, et le clipping agit très peu. Les quelques instabilités observées (saut de la val loss à l'époque 10 du Run 2, pic de gradient vers le step 300) relèvent plutôt du bruit d'entraînement.
 
 Le clipping sert à corriger l'**exploding gradient** : en BPTT, le gradient est un produit de matrices diag(tanh')·W_hh répété sur 499 pas, et si leur norme dépasse 1, il explose. Le clipping limite la norme du gradient tout en gardant sa direction. En revanche, il ne règle pas le vanishing gradient.
@@ -130,6 +137,7 @@ Dans le RNN, h_t = tanh(W_hh h_{t-1} + W_ih x_t), donc le gradient est multipli�
 Le LSTM peut ainsi garder en mémoire des informations comme la métrique (M:), la tonalité (K:) ou une reprise ouverte (|:) sur toute la partition.
 
 **4. Réflexion sur la métrique : Sachant qu'une partition de 250 caractères a été paddée jusqu'à 500 caractères avec des espaces ' ', pourquoi l'Accuracy/Validation affichée est-elle artificiellement optimiste quant à la capacité réelle du modèle à prédire des notes de musique ? Quelle modification simple de nn.CrossEntropyLoss permettrait de ne pas compter le padding dans la perte ?**
+
 Dans ce cas, la moitié des positions sont du padding : après un espace de padding vient toujours un autre espace, ce qui est très facile à prédire. Ces positions comptent dans l'accuracy alors qu'elles n'ont rien à voir avec la musique, donc l'accuracy est gonflée.
 On peut utiliser `nn.CrossEntropyLoss(ignore_index=PAD_IDX)` pour ignorer ces positions dans la loss. Il faut cependant un token de padding dédié, car si on ignore l'espace, on ignore aussi les vrais espaces de la partition. Il faut également appliquer le même masque à l'accuracy (`y != PAD_IDX`).
 
@@ -152,9 +160,11 @@ Quand T → 0⁺, les écarts entre logits sont amplifiés : exp(z_max/T) écras
 Quand T → +∞, z_t/T → 0 pour tous les caractères, donc tous les exp valent 1. La distribution tend vers la loi uniforme (1/95 pour chaque caractère) : le modèle tire au hasard sans tenir compte de ce qu'il a appris.
 
 **Écoute et analyse qualitative : À l'aide de votre meilleur modèle LSTM sauvegardé (ou après avoir lancé un entraînement plus complet à l'étape 2 ci-dessous), générez 3 partitions de 300 caractères à partir de l'amorce "X:1\nT:Irish Reel\nM:4/4\nL:1/8\nK:D\n" avec trois températures :**
+
 T = 0.2 (basse température)
 T = 0.8 (température modérée)
 T = 2.0 (haute température)
+
 **Copiez les 3 partitions générées dans votre rapport et testez-les sur ABC Player. Commentez la validité syntaxique (respect des barres de mesure, des notes ABC) et la richesse musicale (répétitions vs chaos) de chacune des trois générations.**
 
 **T = 0.2** : la syntaxe est valide (notes de la gamme de ré, barres `|`, reprise `::`), mais la génération est très répétitive : le motif `c2 B A2 B` revient 7 fois d'affilée, ce qui est typique du greedy decoding qui tourne en boucle. Le modèle ne respecte pas non plus la métrique : les mesures font 6 croches (`c2 A A2 B` = 2+1+2+1) au lieu de 8 pour du 4/4. C'est un rythme de jig (6/8), probablement le motif le plus fréquent appris. La partie après `::` est un peu plus variée.
