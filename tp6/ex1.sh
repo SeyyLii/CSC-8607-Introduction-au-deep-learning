@@ -14,3 +14,6 @@ python -u bench.py --tag ref-synth                       # fp32, batch 64, donn�
 python -u bench.py --tag ref-async --async-demo          # un pas, avec et sans synchronisation
 python -u bench.py --tag ref-maxbatch --find-max-batch   # plus grand batch qui tient en fp32
 python -u bench.py --tag ref-raw --data raw --workers 3 --epoch   # vraies images, configuration « CI 3 »
+
+
+UnMotDePasseSecurise.12

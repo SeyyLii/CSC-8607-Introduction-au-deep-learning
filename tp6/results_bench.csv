@@ -1,0 +1,27 @@
+tag,materiel,arch,precision,channels_last,compile,donnees,workers,pin_memory,batch,img_s,img_s_min,img_s_max,pic_memoire_go,compilation_s,epoque_s
+ref-synth,NVIDIA H100 NVL,resnet50,fp32,False,False,synthetic,,,64,730.8,728.2,733.7,5.95,nan,nan
+ref-raw,NVIDIA H100 NVL,resnet50,fp32,False,False,raw,3,True,64,731.6,731.1,732.2,5.95,nan,21.0
+raw-w0,NVIDIA H100 NVL,resnet50,fp32,False,False,raw,0,True,64,218.6,202.6,234.7,5.95,nan,nan
+raw-w1,NVIDIA H100 NVL,resnet50,fp32,False,False,raw,1,True,64,226.4,223.0,229.8,5.95,nan,nan
+raw-w2,NVIDIA H100 NVL,resnet50,fp32,False,False,raw,2,True,64,581.6,454.9,708.3,5.95,nan,nan
+raw-w3,NVIDIA H100 NVL,resnet50,fp32,False,False,raw,3,True,64,720.4,719.1,721.6,5.95,nan,nan
+raw-w3-nopin,NVIDIA H100 NVL,resnet50,fp32,False,False,raw,3,False,64,649.1,649.1,649.1,5.95,nan,nan
+small-w0,NVIDIA H100 NVL,resnet50,fp32,False,False,small,0,True,64,263.5,263.5,263.6,5.95,nan,nan
+small-w3,NVIDIA H100 NVL,resnet50,fp32,False,False,small,3,True,64,716.8,716.0,717.7,5.95,nan,nan
+fp32-synthetic,NVIDIA H100 NVL,resnet50,fp32,False,False,synthetic,,,64,729.6,724.6,732.6,5.95,nan,nan
+tf32-synthetic,NVIDIA H100 NVL,resnet50,tf32,False,False,synthetic,,,64,1652.1,1630.0,1689.3,5.93,nan,nan
+bf16-synthetic,NVIDIA H100 NVL,resnet50,bf16,False,False,synthetic,,,64,1999.4,1998.7,2004.2,3.29,nan,nan
+bf16-cl-synthetic,NVIDIA H100 NVL,resnet50,bf16,True,False,synthetic,,,64,2594.5,2392.9,2657.7,3.29,nan,nan
+bf16-cl-compile-synthetic,NVIDIA H100 NVL,resnet50,bf16,True,True,synthetic,,,64,3555.1,3533.1,3555.2,3.07,43.9,nan
+bf16-cl-raw-w1,NVIDIA H100 NVL,resnet50,bf16,True,False,raw,1,True,64,267.3,210.7,318.7,3.29,nan,nan
+bf16-cl-compile-raw-w1,NVIDIA H100 NVL,resnet50,bf16,True,True,raw,1,True,64,313.7,225.0,334.0,3.07,4.3,nan
+bf16-cl-raw-w3,NVIDIA H100 NVL,resnet50,bf16,True,False,raw,3,True,64,3299.5,1986.4,3307.4,3.29,nan,nan
+bf16-cl-compile-raw-w3,NVIDIA H100 NVL,resnet50,bf16,True,True,raw,3,True,64,3925.4,1241.3,4048.7,3.07,3.9,nan
+bf16-cl-small-w1,NVIDIA H100 NVL,resnet50,bf16,True,False,small,1,True,64,372.1,334.4,403.8,3.29,nan,nan
+bf16-cl-compile-small-w1,NVIDIA H100 NVL,resnet50,bf16,True,True,small,1,True,64,487.1,435.6,488.5,3.07,4.8,nan
+bf16-cl-small-w3,NVIDIA H100 NVL,resnet50,bf16,True,False,small,3,True,64,1466.7,1397.4,2099.8,3.29,nan,nan
+bf16-cl-compile-small-w3,NVIDIA H100 NVL,resnet50,bf16,True,True,small,3,True,64,4191.4,2295.4,4238.8,3.07,3.6,nan
+bf16-cl-raw-w3-epoch,NVIDIA H100 NVL,resnet50,bf16,True,False,raw,3,True,64,2809.0,2809.0,2809.0,3.29,nan,23.1
+bf16-cl-compile-raw-w3-epoch,NVIDIA H100 NVL,resnet50,bf16,True,True,raw,3,True,64,2219.6,2219.6,2219.6,3.07,39.7,23.0
+bf16-cl-small-w3-epoch,NVIDIA H100 NVL,resnet50,bf16,True,False,small,3,True,64,2238.2,2238.2,2238.2,3.29,nan,9.4
+bf16-cl-compile-small-w3-epoch,NVIDIA H100 NVL,resnet50,bf16,True,True,small,3,True,64,1618.9,1618.9,1618.9,3.07,4.9,13.9
