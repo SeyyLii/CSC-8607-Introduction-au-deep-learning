@@ -77,6 +77,30 @@ class MusicDataset(Dataset):
         y = torch.tensor(seq[1:], dtype=torch.long)
         return x, y
 
+class MusicModel(nn.Module):
+    def __init__(self, vocab_size, embedding_dim=256, hidden_size=512, rnn_type="lstm"):
+        super().__init__()
+        self.rnn_type = rnn_type.lower()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+
+        if self.rnn_type == "lstm":
+            self.rnn = nn.LSTM(embedding_dim, hidden_size, batch_first=True)
+        elif self.rnn_type == "rnn":
+            self.rnn = nn.RNN(embedding_dim, hidden_size, batch_first=True)
+        else:
+            raise ValueError("rnn_type doit être 'rnn' ou 'lstm'")
+
+        self.fc = nn.Linear(hidden_size, vocab_size)
+
+    def forward(self, x, hidden_state=None):
+        # x : (batch_size, seq_len)
+        embeds = self.embedding(x)               # -> (batch_size, seq_len, embedding_dim)
+        out, hidden_state = self.rnn(embeds, hidden_state) # -> out : (batch_size, seq_len, hidden_size)
+        logits = self.fc(out)                    # -> (batch_size, seq_len, vocab_size)
+        return logits, hidden_state
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 @torch.no_grad()
 def evaluate_model(model, val_loader, loss_fn, vocab_size):
@@ -185,7 +209,48 @@ def train_model(
     writer.close()
     return model
 
+@torch.no_grad()
+def generate_music(model, start_sequence, output_length=300, temperature=1.0):
+    model.eval()
+    generated_seq = start_sequence
+
+    # 1. Phase de pré-remplissage (lecture de l'amorce)
+    input_indices = [char_to_index[c] for c in start_sequence]
+    input_tensor = torch.tensor(input_indices, dtype=torch.long, device=device).unsqueeze(0) # (1, len_prompt)
+    
+    # On récupère les logits et l'état caché (h, c) à la fin de l'amorce
+    logits, hidden_state = model(input_tensor, hidden_state=None)
+
+    # 2. Boucle de génération auto-régressive caractère par caractère
+    for _ in range(output_length):
+        # Logits du dernier pas de temps divisés par la température
+        last_logits = logits[:, -1, :] / temperature
+        probs = F.softmax(last_logits, dim=-1).squeeze(0)
+
+        # Tirage aléatoire selon la distribution de probabilité
+        next_index = torch.multinomial(probs, num_samples=1).item()
+        next_char = index_to_char[next_index]
+        generated_seq += next_char
+
+        # Le caractère généré devient la seule entrée (1, 1) du pas de temps suivant !
+        input_tensor = torch.tensor([[next_index]], dtype=torch.long, device=device)
+        logits, hidden_state = model(input_tensor, hidden_state=hidden_state)
+
+    return generated_seq
+
+
 if __name__ == "__main__":
-    train_model(rnn_type="rnn",  max_grad_norm=None)
-    train_model(rnn_type="rnn",  max_grad_norm=1.0)
-    train_model(rnn_type="lstm", max_grad_norm=1.0)
+    #train_model(rnn_type="rnn",  max_grad_norm=None)
+    #train_model(rnn_type="rnn",  max_grad_norm=1.0)
+    #train_model(rnn_type="lstm", max_grad_norm=1.0)
+    train_model(rnn_type="lstm", hidden_size=1024, subset_size=50000,
+                max_grad_norm=1.0, num_epochs=30)
+
+    # Recharger le MEILLEUR modèle (early stopping), pas le dernier
+    model = MusicModel(vocab_size, hidden_size=1024, rnn_type="lstm").to(device)
+    model.load_state_dict(torch.load("best_lstm.pth", map_location=device))
+
+    prompt = "X:1\nT:Irish Reel\nM:4/4\nL:1/8\nK:D\n"
+    for T in [0.2, 0.8, 2.0]:
+        print(f"\n===== T = {T} =====")
+        print(generate_music(model, prompt, output_length=300, temperature=T))
